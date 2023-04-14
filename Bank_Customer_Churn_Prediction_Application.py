@@ -3,13 +3,13 @@ from flask import Flask, render_template, request
 
 # Feature Scaling
 from sklearn.preprocessing import StandardScaler
-sc = StandardScaler()
+import pickle
 
+sc = pickle.load(open('standardscaler.pkl','rb'))
 # Open our model
 from tensorflow import keras
-model = keras.models.load_model('ann_model')
+model = keras.models.load_model('ANN_model')
 
-# print(model.predict([[0, 1, 0, 800, 1, 21, 5, 6000, 4, 1, 1, 50000]]) > 0.5)
 
 # Initialize Flask
 app = Flask(__name__)
@@ -21,25 +21,26 @@ def index():
 @app.route("/predict", methods=['POST'])
 def predict():
     geography = request.form['geography']
-    creditscore = int(request.form['creditScore'])
-    gender = int(request.form['gender'])
-    age = int(request.form['age'])
-    tenure = int(request.form['tenure'])
-    balance = int(request.form['balance'])
-    numofproducts = int(request.form['numofproducts'])
-    hascrcard = int(request.form['hascrcard'])
-    isactivemember = int(request.form['isactivemember'])
-    estimatedsalary = int(request.form['estimatedsalary'])
+    creditscore = float(request.form['creditScore'])
+    gender = float(request.form['gender'])
+    age = float(request.form['age'])
+    tenure = float(request.form['tenure'])
+    balance = float(request.form['balance'])
+    numofproducts = float(request.form['numofproducts'])
+    hascrcard = float(request.form['hascrcard'])
+    isactivemember = float(request.form['isactivemember'])
+    estimatedsalary = float(request.form['estimatedsalary'])
 
-    g1 = int(geography[0])
-    g2 = int(geography[2])
-    g3 = int(geography[4])
+    g1 = float(geography[0])
+    g2 = float(geography[2])
+    g3 = float(geography[4])
 
-    pred = model.predict([[g1, g2, g3, creditscore, gender, age, tenure, balance, numofproducts, hascrcard, isactivemember, estimatedsalary]])
-    prediction = int(pred)
-    print(prediction)
 
-    if prediction == 1:
+    pred = model.predict(sc.transform([[g1, g2, g3, creditscore, gender, age, tenure, balance, numofproducts, hascrcard, isactivemember, estimatedsalary]]))
+    prediction = float(pred)
+
+
+    if prediction >0.5:
         result = "Therefore, Our model predicts that the customer will not stay in the bank."
     else:
         result = "Therefore, Our model predicts that the customer will stay in the bank."
